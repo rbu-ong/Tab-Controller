@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tab Controller — Privacy Policy</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg:           #0b0d14;
+      --surface:      #161926;
+      --border:       #2e3354;
+      --text:         #e8eaf6;
+      --text-muted:   #9aa0c4;
+      --text-dim:     #6a6f96;
+      --accent:       #2563eb;
+      --accent2:      #7c3aed;
+    }
+
+    html, body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+    }
+
+    a { color: #93c5fd; }
+    a:hover { color: #c4b5fd; }
+
+    .wrap { max-width: 720px; margin: 0 auto; padding: 56px 24px 80px; }
+
+    h1 {
+      font-size: 26px; font-weight: 800; margin: 0 0 6px;
+      background: linear-gradient(135deg, #93c5fd, #c4b5fd);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      display: inline-block;
+    }
+    .updated { color: var(--text-dim); font-size: 12.5px; margin-bottom: 32px; }
+
+    h3 { font-size: 15.5px; font-weight: 700; margin: 28px 0 8px; color: var(--text); }
+    p, li { color: var(--text-muted); font-size: 14.5px; }
+    ul { padding-left: 20px; }
+    li { margin-bottom: 6px; }
+    strong { color: var(--text); }
+    code {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
+      padding: 1px 5px; font-size: 13px;
+    }
+
+    footer {
+      margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border);
+      color: var(--text-dim); font-size: 12.5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Tab Controller — Privacy Policy</h1>
+    <div class="updated">Last updated: September 2026</div>
+
+    <p>Tab Controller is a Chrome extension that lets a user grant a trusted, paired peer temporary remote control of exactly one of their browser tabs, with explicit on-screen consent. This policy explains what data is involved and how it's handled.</p>
+
+    <h3>What data Tab Controller handles</h3>
+    <p><strong>During an active, consented remote-control session:</strong></p>
+    <ul>
+      <li><strong>Screen content of the shared tab</strong> — a live screencast of the shared tab is streamed to the paired peer so they can see what they're controlling. This is peer-to-peer via a relay server that only forwards messages between the two paired sessions; the relay does not store, log, or inspect this content.</li>
+      <li><strong>Input activity</strong> — the controlling peer's clicks, scrolls, and keystrokes are transmitted to the shared tab in order to control it. Same relay-forwarding model as above: passed through in real time, not stored.</li>
+    </ul>
+
+    <p><strong>Stored locally on your own device only</strong> (via <code>chrome.storage.local</code>, never transmitted to us):</p>
+    <ul>
+      <li>Whether a purchased license key has been activated, and the license's activation instance ID (used only if you later deactivate that license on this device).</li>
+    </ul>
+
+    <p><strong>Sent to third parties you directly interact with:</strong></p>
+    <ul>
+      <li>If you activate or deactivate a license key, that key is sent directly from your browser to LemonSqueezy (our payment/licensing provider) to validate it. We do not receive, see, or store your license key, payment details, or any purchase information ourselves — that transaction is entirely between you and LemonSqueezy, governed by <a href="https://www.lemonsqueezy.com/privacy" target="_blank" rel="noopener">LemonSqueezy's own privacy policy</a>.</li>
+    </ul>
+
+    <h3>What we do not do</h3>
+    <ul>
+      <li>We do not collect, log, or store your browsing history.</li>
+      <li>We do not collect personally identifiable information, financial/payment information, authentication credentials, personal communications, or location data.</li>
+      <li>We do not sell or transfer your data to third parties outside the LemonSqueezy licensing interaction described above.</li>
+      <li>We do not use any data for purposes unrelated to providing the remote-control feature itself.</li>
+      <li>We do not use any data to determine creditworthiness or for lending purposes.</li>
+      <li>Session recording (a paid feature) happens entirely on your own device — recordings are never uploaded anywhere; you choose if and when to save the file locally.</li>
+    </ul>
+
+    <h3>Consent and control</h3>
+    <p>No remote-control session can begin without the tab owner explicitly approving an on-screen consent prompt naming what is about to happen. Chrome's own "this tab is being debugged" indicator remains visible for the duration of any session and cannot be hidden. Either party can end a session at any time.</p>
+
+    <h3>Data retention</h3>
+    <p>The relay server holds session state (a room code pairing two peers) only in memory, only for the duration of an active session, and discards it immediately when the session ends. Nothing about a session is written to persistent storage on our servers.</p>
+
+    <h3>Changes to this policy</h3>
+    <p>If this policy changes, the "Last updated" date above will be revised.</p>
+
+    <h3>Contact</h3>
+    <p>Questions about this policy can be directed to the developer via the <a href="https://github.com/rbu-ong/Tab-Controller/issues" target="_blank" rel="noopener">GitHub repository's issue tracker</a>.</p>
+
+    <footer>Tab Controller — <a href="https://github.com/rbu-ong/Tab-Controller">github.com/rbu-ong/Tab-Controller</a></footer>
+  </div>
+</body>
+</html>
