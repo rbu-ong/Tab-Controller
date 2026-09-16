@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tab Controller — Consent-Gated Remote Control for a Single Browser Tab</title>
+  <meta name="description" content="Tab Controller lets a trusted person control just one of your browser tabs — not your desktop. Consent-gated, lightweight, secure." />
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg:           #0b0d14;
+      --bg2:          #0f1220;
+      --surface:      #161926;
+      --surface2:     #1b1f33;
+      --border:       #2e3354;
+      --text:         #e8eaf6;
+      --text-muted:   #9aa0c4;
+      --text-dim:     #6a6f96;
+      --accent:       #2563eb;
+      --accent2:      #7c3aed;
+      --accent3:      #22d3ee;
+      --good:         #34d399;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    html, body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+    }
+
+    a { color: #93c5fd; text-decoration: none; }
+    a:hover { color: #c4b5fd; }
+
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
+    /* ---------- background glow ---------- */
+    .glow {
+      position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background:
+        radial-gradient(600px 400px at 15% 0%, rgba(37,99,235,0.22), transparent 60%),
+        radial-gradient(600px 400px at 85% 15%, rgba(124,58,237,0.20), transparent 60%),
+        radial-gradient(800px 500px at 50% 100%, rgba(34,211,238,0.08), transparent 60%);
+    }
+
+    /* ---------- nav ---------- */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 24px; max-width: 1040px; margin: 0 auto;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 16px; color: var(--text); }
+    .brand .dot {
+      width: 10px; height: 10px; border-radius: 3px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 0 12px rgba(124,58,237,0.6);
+    }
+    nav .links { display: flex; gap: 24px; font-size: 14px; color: var(--text-muted); }
+    nav .links a:hover { color: var(--text); }
+    .btn-nav {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff !important; padding: 9px 18px; border-radius: 8px; font-size: 13.5px; font-weight: 700;
+    }
+    .btn-nav:hover { opacity: 0.92; color: #fff !important; }
+
+    /* ---------- hero ---------- */
+    .hero { text-align: center; padding: 64px 24px 40px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text-muted); font-size: 12.5px; font-weight: 600;
+      padding: 6px 14px; border-radius: 999px; margin-bottom: 24px;
+    }
+    .badge .pulse {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--good);
+      box-shadow: 0 0 0 0 rgba(52,211,153,0.6); animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(52,211,153,0.55); }
+      70%  { box-shadow: 0 0 0 6px rgba(52,211,153,0); }
+      100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+    }
+
+    h1.title {
+      font-size: 46px; font-weight: 800; margin: 0 0 18px; letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+    h1.title .grad {
+      background: linear-gradient(135deg, #93c5fd, #c4b5fd);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .subtitle {
+      max-width: 620px; margin: 0 auto 34px; color: var(--text-muted); font-size: 17px;
+    }
+
+    .cta-row { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 13px 26px; border-radius: 10px; font-weight: 700; font-size: 15px;
+      border: 1px solid transparent;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff !important;
+      box-shadow: 0 8px 24px -8px rgba(124,58,237,0.55);
+    }
+    .btn-primary:hover { opacity: 0.93; color: #fff !important; }
+    .btn-ghost {
+      background: var(--surface); border-color: var(--border); color: var(--text) !important;
+    }
+    .btn-ghost:hover { border-color: #454b7a; color: var(--text) !important; }
+
+    .fine { color: var(--text-dim); font-size: 12.5px; }
+
+    /* ---------- mock window ---------- */
+    .mock {
+      max-width: 780px; margin: 48px auto 0;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      overflow: hidden; box-shadow: 0 30px 80px -30px rgba(0,0,0,0.6);
+    }
+    .mock-bar {
+      display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+      background: var(--surface2); border-bottom: 1px solid var(--border);
+    }
+    .mock-bar span { width: 10px; height: 10px; border-radius: 50%; background: #3a3f66; }
+    .mock-bar .url {
+      margin-left: 10px; font-size: 12px; color: var(--text-dim);
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 6px;
+      padding: 4px 10px; flex: 1;
+    }
+    .mock-body { padding: 26px; display: flex; align-items: center; gap: 22px; }
+    .mock-avatar {
+      flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .mock-text h4 { margin: 0 0 4px; font-size: 15px; color: var(--text); }
+    .mock-text p { margin: 0; font-size: 13px; color: var(--text-muted); }
+    .mock-actions { margin-left: auto; display: flex; gap: 8px; flex-shrink: 0; }
+    .mock-actions button {
+      font-size: 12.5px; font-weight: 700; padding: 8px 14px; border-radius: 7px; border: none;
+    }
+    .mock-allow { background: var(--good); color: #04231a; }
+    .mock-deny { background: var(--border); color: var(--text-muted); }
+    .mock-flag {
+      display: flex; align-items: center; gap: 8px; padding: 10px 26px 20px;
+      font-size: 12px; color: var(--text-dim); border-top: 1px dashed var(--border); margin-top: 2px; padding-top: 16px;
+    }
+    .mock-flag .rec { width: 8px; height: 8px; border-radius: 50%; background: #f87171; }
+
+    /* ---------- section shell ---------- */
+    section { padding: 72px 0; }
+    .section-head { text-align: center; max-width: 620px; margin: 0 auto 44px; }
+    .kicker {
+      font-size: 12.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--accent3); margin-bottom: 10px;
+    }
+    h2 { font-size: 30px; font-weight: 800; margin: 0 0 12px; letter-spacing: -0.01em; }
+    .section-head p { color: var(--text-muted); font-size: 15.5px; margin: 0; }
+
+    /* ---------- feature grid ---------- */
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 24px; transition: border-color .15s, transform .15s;
+    }
+    .card:hover { border-color: #454b7a; transform: translateY(-2px); }
+    .card .icon {
+      width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 19px; margin-bottom: 14px;
+      background: var(--surface2); border: 1px solid var(--border);
+    }
+    .card h3 { font-size: 15.5px; margin: 0 0 8px; color: var(--text); }
+    .card p { font-size: 13.5px; color: var(--text-muted); margin: 0; }
+
+    /* ---------- how it works ---------- */
+    .steps { display: flex; flex-direction: column; gap: 0; max-width: 680px; margin: 0 auto; }
+    .step { display: flex; gap: 20px; padding: 0 0 34px; position: relative; }
+    .step:not(:last-child)::before {
+      content: ''; position: absolute; left: 19px; top: 44px; bottom: 0; width: 1px;
+      background: linear-gradient(to bottom, var(--border), transparent);
+    }
+    .step-num {
+      flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 14px; color: var(--accent3);
+      position: relative; z-index: 1;
+    }
+    .step-body h4 { margin: 3px 0 6px; font-size: 15.5px; color: var(--text); }
+    .step-body p { margin: 0; font-size: 13.5px; color: var(--text-muted); max-width: 480px; }
+
+    /* ---------- trust strip ---------- */
+    .trust {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px;
+    }
+    .trust-item { text-align: center; }
+    .trust-item .n { font-size: 22px; font-weight: 800; color: var(--text); }
+    .trust-item .n .grad { background: linear-gradient(135deg, #93c5fd, #c4b5fd); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .trust-item .l { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+
+    /* ---------- pricing ---------- */
+    .pricing { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 720px; margin: 0 auto; }
+    .plan {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px;
+    }
+    .plan.highlight { border-color: var(--accent2); box-shadow: 0 0 0 1px rgba(124,58,237,0.25) inset; position: relative; }
+    .plan.highlight::before {
+      content: 'ONE-TIME'; position: absolute; top: -10px; right: 20px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff;
+      font-size: 10.5px; font-weight: 800; letter-spacing: 0.05em; padding: 4px 10px; border-radius: 999px;
+    }
+    .plan h3 { font-size: 15px; color: var(--text-muted); margin: 0 0 6px; font-weight: 700; }
+    .plan .price { font-size: 30px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+    .plan .price span { font-size: 13px; color: var(--text-dim); font-weight: 500; }
+    .plan .desc { font-size: 13px; color: var(--text-dim); margin-bottom: 18px; }
+    .plan ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+    .plan li { font-size: 13.5px; color: var(--text-muted); display: flex; gap: 8px; align-items: flex-start; }
+    .plan li .ck { color: var(--good); flex-shrink: 0; }
+
+    /* ---------- final cta ---------- */
+    .final {
+      text-align: center; background: linear-gradient(135deg, rgba(37,99,235,0.14), rgba(124,58,237,0.14));
+      border: 1px solid var(--border); border-radius: 20px; padding: 56px 32px;
+    }
+    .final h2 { margin-bottom: 10px; }
+    .final p { color: var(--text-muted); margin: 0 0 26px; }
+
+    footer {
+      border-top: 1px solid var(--border); padding: 28px 24px 40px;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+      color: var(--text-dim); font-size: 12.5px;
+    }
+    footer .links { display: flex; gap: 18px; }
+
+    @media (max-width: 760px) {
+      h1.title { font-size: 32px; }
+      .grid { grid-template-columns: 1fr; }
+      .trust { grid-template-columns: repeat(2, 1fr); }
+      .pricing { grid-template-columns: 1fr; }
+      .mock-body { flex-wrap: wrap; }
+      .mock-actions { margin-left: 0; }
+      nav .links { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="glow"></div>
+
+  <nav>
+    <div class="brand"><span class="dot"></span> Tab Controller</div>
+    <div class="links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="privacy.html">Privacy</a>
+    </div>
+    <a class="btn-nav" href="https://chromewebstore.google.com/detail/tab-controller/pfpklflgcohcgjcabncbooelenbbbkcj" target="_blank" rel="noopener">Add to Chrome</a>
+  </nav>
+
+  <header class="hero wrap">
+    <div class="badge"><span class="pulse"></span> Live on the Chrome Web Store</div>
+    <h1 class="title">Let someone control<br><span class="grad">one tab — not your computer.</span></h1>
+    <p class="subtitle">Tab Controller is a Chrome extension for consent-gated remote control of a single browser tab. Perfect for support, tutoring, and walkthroughs — without handing over your whole desktop.</p>
+
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/tab-controller/pfpklflgcohcgjcabncbooelenbbbkcj" target="_blank" rel="noopener">➕ Add to Chrome — it's free</a>
+      <a class="btn btn-ghost" href="#how">See how it works</a>
+    </div>
+    <div class="fine">No account required · Free 5-minute sessions · One-time license for unlimited use</div>
+
+    <div class="mock">
+      <div class="mock-bar">
+        <span></span><span></span><span></span>
+        <div class="url">🔒 app.example.com</div>
+      </div>
+      <div class="mock-body">
+        <div class="mock-avatar">👤</div>
+        <div class="mock-text">
+          <h4>Alex wants to control this tab</h4>
+          <p>They'll be able to click, scroll, and type here until you end the session.</p>
+        </div>
+        <div class="mock-actions">
+          <button class="mock-deny">Deny</button>
+          <button class="mock-allow">Allow</button>
+        </div>
+      </div>
+      <div class="mock-flag"><span class="rec"></span> Chrome is being debugged by an extension — visible for the entire session, can't be hidden</div>
+    </div>
+  </header>
+
+  <section id="features" class="wrap">
+    <div class="section-head">
+      <div class="kicker">Why Tab Controller</div>
+      <h2>Scoped down to exactly what's needed</h2>
+      <p>Most remote-control tools hand over an entire computer. This one hands over a single tab — and nothing else.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="icon">🎯</div>
+        <h3>Single-tab scope</h3>
+        <p>Control never extends past the one tab that was shared — no access to other tabs, files, or applications on the device.</p>
+      </div>
+      <div class="card">
+        <div class="icon">✅</div>
+        <h3>Explicit consent</h3>
+        <p>Every session requires an on-screen approval naming exactly what's about to happen. Nothing starts silently.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🛡️</div>
+        <h3>Unspoofable indicator</h3>
+        <p>Chrome's own "this tab is being debugged" banner stays visible for the whole session — built into the browser, not the extension's word.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🖱️</div>
+        <h3>Real two-way control</h3>
+        <p>Clicks, typing, scrolling, and navigation — with a live mirror of the tab, not just a view-only screen share.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔗</div>
+        <h3>Optional domain lock</h3>
+        <p>Restrict a session to a single website, so control can't wander to somewhere it wasn't meant to go.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🎥</div>
+        <h3>Local-only recording</h3>
+        <p>Record a session straight to your own device. Nothing is ever uploaded anywhere — the file is yours alone.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" class="wrap">
+    <div class="section-head">
+      <div class="kicker">The guide</div>
+      <h2>How a session works</h2>
+      <p>Four steps, no installs on the other end, done in under a minute.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Start a share</h4>
+          <p>Click the Tab Controller icon on the tab you want someone else to help with, then choose "Share this tab." A one-time room code is generated.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Send the code</h4>
+          <p>Send the code to the person helping you, however you'd normally reach them — chat, email, a call. They enter it in their own copy of the extension.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Approve the session</h4>
+          <p>You'll see a clear on-screen prompt before anything happens. Approve it, and Chrome's debugging indicator confirms the session is active.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>Hand over control — and take it back anytime</h4>
+          <p>The other person sees a live mirror of your tab and can click, type, and scroll. End the session instantly from either side, at any time.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="trust">
+      <div class="trust-item"><div class="n"><span class="grad">1</span></div><div class="l">Tab controlled per session</div></div>
+      <div class="trust-item"><div class="n"><span class="grad">0</span></div><div class="l">Files or apps exposed</div></div>
+      <div class="trust-item"><div class="n"><span class="grad">5 min</span></div><div class="l">Free per session</div></div>
+      <div class="trust-item"><div class="n"><span class="grad">100%</span></div><div class="l">Local session recordings</div></div>
+    </div>
+  </section>
+
+  <section id="pricing" class="wrap">
+    <div class="section-head">
+      <div class="kicker">Simple pricing</div>
+      <h2>Try it free, upgrade once</h2>
+      <p>No subscriptions. A single license removes the time cap for good.</p>
+    </div>
+    <div class="pricing">
+      <div class="plan">
+        <h3>Free</h3>
+        <div class="price">$0</div>
+        <div class="desc">Every session, no account needed</div>
+        <ul>
+          <li><span class="ck">✓</span> Full tab-control features</li>
+          <li><span class="ck">✓</span> 5 minutes per session</li>
+          <li><span class="ck">✓</span> Consent prompts &amp; domain lock</li>
+        </ul>
+      </div>
+      <div class="plan highlight">
+        <h3>Licensed</h3>
+        <div class="price">One payment <span>· lifetime</span></div>
+        <div class="desc">For anyone who needs more than 5 minutes</div>
+        <ul>
+          <li><span class="ck">✓</span> Unlimited session time</li>
+          <li><span class="ck">✓</span> Local session recording</li>
+          <li><span class="ck">✓</span> Use across your devices</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="final">
+      <h2>Give it a try — it takes seconds to install</h2>
+      <p>Add it to Chrome, share a tab, and see how it feels to hand over exactly one thing instead of everything.</p>
+      <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/tab-controller/pfpklflgcohcgjcabncbooelenbbbkcj" target="_blank" rel="noopener">➕ Add to Chrome — it's free</a>
+    </div>
+  </section>
+
+  <footer class="wrap">
+    <div>© 2026 Tab Controller</div>
+    <div class="links">
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="https://chromewebstore.google.com/detail/tab-controller/pfpklflgcohcgjcabncbooelenbbbkcj" target="_blank" rel="noopener">Chrome Web Store</a>
+    </div>
+  </footer>
+</body>
+</html>
